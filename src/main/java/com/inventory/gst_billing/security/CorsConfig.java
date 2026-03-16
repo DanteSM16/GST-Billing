@@ -13,7 +13,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // Allow all API endpoints
-                        .allowedOrigins("http://localhost:5173") // Allow React's port
+                        .allowedOrigins("https://gst-billing-frontend1.vercel.app", "http://localhost:5173") // Allow React's port
                         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE")
                         .allowedHeaders("*");
             }
