@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 14px; margin: 20px; }
+        .header { text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        th { background-color: #e6f2ff; } /* Light blue to distinguish from Sales */
+        .totals { text-align: right; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>PURCHASE RECEIPT</h1>
+    <h2><span th:text="${invoice.store.storeName}"></span></h2>
+    <p style="margin-top: 0; color: #555;"><span th:text="${invoice.store.address}"></span></p>
+    <p>Receiving Store GSTIN: <span th:text="${invoice.store.gstin}"></span> | State: <span th:text="${invoice.store.stateCode}"></span></p>
+</div>
+
+<div>
+    <p><strong>Supplier Name:</strong> <span th:text="${invoice.supplierName}"></span></p>
+    <p><strong>Supplier GSTIN:</strong> <span th:text="${invoice.supplierGstin}"></span></p>
+    <p><strong>Internal Record ID:</strong> #<span th:text="${invoice.id}"></span></p>
+    <p><strong>Date Received:</strong> <span th:text="${#temporals.format(invoice.createdAt, 'dd-MM-yyyy HH:mm')}"></span></p>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>Item / Product</th>
+        <th>HSN Code</th>
+        <th>Quantity</th>
+        <th>Unit Price (Rs. )</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Loops through PurchaseItems instead of SalesItems! -->
+    <tr th:each="item : ${items}">
+        <td th:text="${item.product.name}"></td>
+        <td th:text="${item.product.hsnCode}"></td>
+        <td th:text="${item.quantity}"></td>
+        <td th:text="${item.purchasePrice}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="totals">
+    <p>Total Taxable Value: Rs. <span th:text="${invoice.totalTaxable}"></span></p>
+    <p>Input CGST: Rs. <span th:text="${invoice.cgstTotal}"></span></p>
+    <p>Input SGST: Rs. <span th:text="${invoice.sgstTotal}"></span></p>
+    <p>Input IGST: Rs. <span th:text="${invoice.igstTotal}"></span></p>
+    <h3 style="border-top: 1px solid black; padding-top: 10px;">
+        Grand Total Paid: Rs. <span th:text="${invoice.totalTaxable + invoice.cgstTotal + invoice.sgstTotal + invoice.igstTotal}"></span>
+    </h3>
+</div>
+
+</body>
+</html>
