@@ -15,4 +15,6 @@ public class SalesInvoiceResponse {
     private String storeGstin;
     private String storeAddress;
     private String storeStateCode;
+    private String paymentMethod;
+    private String paymentId;
 }
