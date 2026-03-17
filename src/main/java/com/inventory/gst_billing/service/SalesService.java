@@ -20,18 +20,20 @@ public class SalesService {
     private final StockRepository stockRepo;
     private final GstLedgerRepository gstLedgerRepo;
     private final UserRepository userRepo;
+    private final PaymentService paymentService;
 
     //private final String STORE_STATE_CODE = "MH"; // Hardcoded shop location
     // was used before state and store id logic
 
 
     public SalesService(SalesInvoiceRepository salesInvoiceRepo, SalesItemRepository salesItemRepo,
-                        StockRepository stockRepo, GstLedgerRepository gstLedgerRepo, UserRepository userRepo) {
+                        StockRepository stockRepo, GstLedgerRepository gstLedgerRepo, UserRepository userRepo, PaymentService paymentService) {
         this.salesInvoiceRepo = salesInvoiceRepo;
         this.salesItemRepo = salesItemRepo;
         this.stockRepo = stockRepo;
         this.gstLedgerRepo = gstLedgerRepo;
         this.userRepo = userRepo;
+        this.paymentService = paymentService;
     }
 
     @Transactional
@@ -40,6 +42,25 @@ public class SalesService {
         User loggedInUser = userRepo.findByUsername(currentUsername).orElseThrow(() -> new RuntimeException("User not found"));
         Store userStore = loggedInUser.getStore();
         if (userStore == null) throw new RuntimeException("This user is not assigned to a Store!");
+
+        // If they claim they paid online via Razorpay, verify that using the secret key math !
+        if ("RAZORPAY_ONLINE".equals(request.getPaymentMethod())) {
+
+            if (request.getRazorpayPaymentId() == null || request.getRazorpayOrderId() == null || request.getRazorpaySignature() == null) {
+                throw new RuntimeException("Missing Payment Verification Data!");
+            }
+
+            boolean isAuthentic = paymentService.verifySignature(
+                    request.getRazorpayOrderId(),
+                    request.getRazorpayPaymentId(),
+                    request.getRazorpaySignature()
+            );
+
+            if (!isAuthentic) {
+                throw new RuntimeException("SECURITY BREACH: Payment Signature Verification Failed.");
+            }
+        }
+        // If it's CASH, it skips the verification entirely and goes straight to saving the invoice!
 
         BigDecimal totalTaxable = BigDecimal.ZERO;
         BigDecimal totalTax = BigDecimal.ZERO;
@@ -51,6 +72,9 @@ public class SalesService {
         invoice.setBillingAddress(request.getBillingAddress());
         invoice.setStateCode(request.getStateCode().toUpperCase());
         invoice.setStore(userStore);
+        invoice.setPaymentMethod(request.getPaymentMethod());
+        invoice.setRazorpayOrderId(request.getRazorpayOrderId());
+        invoice.setRazorpayPaymentId(request.getRazorpayPaymentId());
         invoice = salesInvoiceRepo.save(invoice);
 
         // 2. Process each scanned item
@@ -107,6 +131,7 @@ public class SalesService {
         invoice.setCgstTotal(cgst);
         invoice.setSgstTotal(sgst);
         invoice.setIgstTotal(igst);
+
         salesInvoiceRepo.save(invoice);
 
         // 5. Log OUTPUT tax liability to GST Ledger
@@ -128,6 +153,8 @@ public class SalesService {
         response.setCgstTotal(cgst);
         response.setSgstTotal(sgst);
         response.setIgstTotal(igst);
+        response.setPaymentMethod(invoice.getPaymentMethod());
+        response.setPaymentId(invoice.getRazorpayPaymentId());
 
         return response;
     }
