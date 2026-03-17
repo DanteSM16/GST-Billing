@@ -56,6 +56,15 @@ public class SalesInvoice {
     @Column(name = "customer_gstin", length = 15)
     private String customerGstin; // If null = B2C. If present = B2B.
 
+    @Column(name = "payment_method", length = 20)
+    private String paymentMethod; // e.g., "RAZORPAY_ONLINE" or "CASH"
+
+    @Column(name = "razorpay_payment_id", length = 50)
+    private String razorpayPaymentId; // Proof of the transaction!
+
+    @Column(name = "razorpay_order_id", length = 50)
+    private String razorpayOrderId;
+
     @CreatedBy
     @Column(updatable = false)
     private String createdBy;
