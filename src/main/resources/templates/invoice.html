@@ -45,6 +45,17 @@
     </tbody>
 </table>
 
+<div style="margin-top: 20px; font-size: 13px; color: #333;">
+    <p><strong>Payment Method:</strong>
+        <span th:text="${invoice.paymentMethod == 'RAZORPAY_ONLINE' ? 'ONLINE (Card)' : 'CASH'}"></span>
+    </p>
+
+    <p th:if="${invoice.razorpayPaymentId != null}">
+        <strong>Transaction ID:</strong> <span th:text="${invoice.razorpayPaymentId}"></span>
+    </p>
+</div>
+
+
 <div class="totals">
     <p>Total Taxable Value: Rs. <span th:text="${invoice.totalTaxable}"></span></p>
     <p>CGST: Rs. <span th:text="${invoice.cgstTotal}"></span></p>
